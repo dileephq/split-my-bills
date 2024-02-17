@@ -27,50 +27,79 @@ function App() {
       <div className="sidebar">
         <ul>
           {initialFriends.map((friend) => (
-            <li key={friend.id}>
-              <img src={friend.image} alt="random" />
-              <h3>{friend.name}</h3>
-              <p>Some text and {friend.balance}</p>
-              <button className="button">Select</button>
-            </li>
+            <FriendCard
+              key={friend.id}
+              name={friend.name}
+              image={friend.image}
+              balance={friend.balance}
+            />
           ))}
           <li>
-            <button className="button">Add friend</button>
+            <Button text="Add friend" />
           </li>
         </ul>
         <form className="form-add-friend">
-          <label htmlFor="name">* Friend name</label>
-          <input type="text" id="name" name="friend_name" />
-
-          <label htmlFor="avatar">* Image URL</label>
-          <input type="text" id="avatar" name="avatar" />
-
-          <button className="button">Add</button>
+          <Input id="friend_name" text="Friend name" />
+          <Input id="avatar" text="Image URL" />
+          <Button text="Add" />
         </form>
-        <div></div>
-        <button className="button mt-5">Close</button>
+        <Button text="Close" />
       </div>
-      <form className="form-add-friend">
+      <form className="form-split-bill">
         <h2>Split a bill with [Friend]</h2>
-        <label htmlFor="bill">* Bill value</label>
-        <input type="text" id="bill" name="bill_value" />
+        <Input id="total_bill" text="Bill value" />
 
-        <label htmlFor="my-expense">* My expense</label>
-        <input type="text" id="my-expense" name="my-expense" />
+        <Input id="my-expense" text="My expense" />
 
-        <label htmlFor="friend-expense">* [friends] expense</label>
-        <input type="text" id="friend-expense" name="friend-expense" />
+        <Input id="friend-share" text="[friends] expense" />
 
         <label htmlFor="paid_by_whom">- Who is paying the bill</label>
 
         <select name="paid_by_whom" id="paid_by_whom">
           <option value="you">You</option>
-          <option value="friend">Friend</option>
+          <option value="[friend]">[Friend]</option>
         </select>
 
-        <button className="button">Split bill</button>
+        <Button text="Split bill" />
       </form>
     </div>
+  )
+}
+
+type FriendCardProps = {
+  image: string
+  name: string
+  balance: number
+}
+
+const FriendCard = ({ image, name, balance }: FriendCardProps) => {
+  return (
+    <li>
+      <img src={image} alt="random" />
+      <h3>{name}</h3>
+      <p>Some text and {balance}</p>
+      <button className="button">Select</button>
+    </li>
+  )
+}
+
+type ButtonProps = {
+  text: string
+}
+const Button = ({ text }: ButtonProps) => {
+  return <button className="button">{text}</button>
+}
+
+type InputProps = {
+  text: string
+  id: string
+}
+const Input = ({ text, id }: InputProps) => {
+  return (
+    <>
+      <label htmlFor={id}>{`* ${text}`}</label>
+      <input type="text" id={id} name={id} />
+    </>
   )
 }
 
