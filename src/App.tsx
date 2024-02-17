@@ -1,32 +1,62 @@
 import './App.css'
+import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
 
-const initialFriends = [
+const avatarURL = 'https://i.pravatar.cc/48'
+
+type Friend = {
+  id: number
+  name: string
+  image: string
+  balance: number
+}
+
+const initialFriends: Friend[] = [
   {
     id: 118836,
     name: 'Clark',
-    image: 'https://i.pravatar.cc/48?u=118836',
+    image: avatarURL,
     balance: -7,
   },
-  {
-    id: 933372,
-    name: 'Sarah',
-    image: 'https://i.pravatar.cc/48?u=933372',
-    balance: 20,
-  },
-  {
-    id: 499476,
-    name: 'Anthony',
-    image: 'https://i.pravatar.cc/48?u=499476',
-    balance: 0,
-  },
+  // {
+  //   id: 933372,
+  //   name: 'Sarah',
+  //   image: avatarURL,
+  //   balance: 20,
+  // },
+  // {
+  //   id: 499476,
+  //   name: 'Anthony',
+  //   image: avatarURL,
+  //   balance: 0,
+  // },
 ]
 
 function App() {
+  const [friends, setFriends] = useState(initialFriends)
+  const [addFriendToggle, setAddFriendToggle] = useState(true)
+  const [friendName, setFriendName] = useState('')
+  const [friendAvatar, setFriendAvatar] = useState(avatarURL)
+
+  const onAddFriend = (e: MouseEvent) => {
+    e.preventDefault()
+    setFriends((friends) => [
+      ...friends,
+      {
+        id: Date.now(),
+        name: friendName,
+        image: friendAvatar,
+        balance: 0,
+      },
+    ])
+    setFriendAvatar(avatarURL)
+    setFriendName('')
+    setAddFriendToggle((t) => !t)
+  }
   return (
     <div className="app">
       <div className="sidebar">
         <ul>
-          {initialFriends.map((friend) => (
+          {friends.map((friend) => (
             <FriendCard
               key={friend.id}
               name={friend.name}
@@ -34,16 +64,44 @@ function App() {
               balance={friend.balance}
             />
           ))}
-          <li>
-            <Button text="Add friend" />
-          </li>
+          {addFriendToggle ? (
+            <li>
+              <button
+                onClick={() => setAddFriendToggle((t) => !t)}
+                className="button"
+              >
+                Add friend
+              </button>
+            </li>
+          ) : null}
         </ul>
-        <form className="form-add-friend">
-          <Input id="friend_name" text="Friend name" />
-          <Input id="avatar" text="Image URL" />
-          <Button text="Add" />
-        </form>
-        <Button text="Close" />
+        {!addFriendToggle && (
+          <>
+            <form className="form-add-friend">
+              <Input
+                value={friendName}
+                onChange={setFriendName}
+                id="friend_name"
+                text="Friend name"
+              />
+              <Input
+                value={friendAvatar}
+                onChange={setFriendAvatar}
+                id="avatar"
+                text="Image URL"
+              />
+              <button onClick={onAddFriend} className="button">
+                Add
+              </button>
+            </form>
+            <button
+              onClick={() => setAddFriendToggle((t) => !t)}
+              className="button"
+            >
+              Close
+            </button>
+          </>
+        )}
       </div>
       <form className="form-split-bill">
         <h2>Split a bill with [Friend]</h2>
@@ -91,20 +149,44 @@ const FriendCard = ({ image, name, balance }: FriendCardProps) => {
 
 type ButtonProps = {
   text: string
+  addFriendToggle: boolean
+  setAddFriendToggle: Dispatch<SetStateAction<boolean>>
 }
-const Button = ({ text }: ButtonProps) => {
-  return <button className="button">{text}</button>
+const Button = ({ text, addFriendToggle, setAddFriendToggle }: ButtonProps) => {
+  return (
+    <>
+      {addFriendToggle ? (
+        <button
+          onClick={() => setAddFriendToggle((t) => !t)}
+          className="button"
+        >
+          {text}
+        </button>
+      ) : null}
+    </>
+  )
 }
 
 type InputProps = {
   text: string
   id: string
+  value: string
+  onChange: Dispatch<SetStateAction<string>>
 }
-const Input = ({ text, id }: InputProps) => {
+const Input = ({ text, id, value, onChange }: InputProps) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value)
+  }
   return (
     <>
       <label htmlFor={id}>{`* ${text}`}</label>
-      <input type="text" id={id} name={id} />
+      <input
+        value={value}
+        onChange={handleInputChange}
+        type="text"
+        id={id}
+        name={id}
+      />
     </>
   )
 }
