@@ -16,15 +16,8 @@ Link to User stories: https://github.com/users/dileephq/projects/2
   ```bash
   $ npm run dev
   ```
-  
-- Run tests
-  ```bash
-  $ npm run test
-  ```
 
 ## Tools & Technologies
 - React
 - TypeScript
 - Vite
-- React Testing Library
-- Vitest
