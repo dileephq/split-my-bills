@@ -77,7 +77,13 @@ const FriendCard = ({ image, name, balance }: FriendCardProps) => {
     <li>
       <img src={image} alt="random" />
       <h3>{name}</h3>
-      <p>Some text and {balance}</p>
+      {balance < 0 && (
+        <p className="red">{`You owe ${name} £${Math.abs(balance)}`}</p>
+      )}
+      {balance === 0 && <p>{`You and ${name} are even`}</p>}
+      {balance > 0 && (
+        <p className="green">{`${name} owes You  £${balance}`}</p>
+      )}
       <button className="button">Select</button>
     </li>
   )
