@@ -50,7 +50,6 @@ function App() {
   const [whoPaid, setWhoPaid] = useState(0)
 
   const selectedFriend = friends.find((f) => f.id === splitBill) as Friend
-
   const friendShare = totalBill - myShare
 
   const onAddFriend = (e: MouseEvent) => {
@@ -71,11 +70,6 @@ function App() {
 
   const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (myShare > totalBill) return
-    console.log(totalBill, myShare, friendShare, whoPaid)
-
-    // if I paid > Friend owes me friendsShare
-    // if Friend paid > I owe friend myShare
 
     let friendLatest: Friend
     if (whoPaid === 0) {
@@ -86,16 +80,16 @@ function App() {
     } else {
       friendLatest = {
         ...selectedFriend,
-        balance: selectedFriend.balance - friendShare,
+        balance: selectedFriend.balance - myShare,
       }
     }
-    console.log('friendLatest', friendLatest)
 
     setFriends((f) =>
       f.map((e) =>
         e.id === selectedFriend.id ? { ...e, ...friendLatest } : e,
       ),
     )
+    setSplitBill(null)
   }
   return (
     <div className="app">
@@ -238,7 +232,7 @@ type InputProps = {
   text: string
   id: string
   value: string | number
-  onChange: Dispatch<SetStateAction<string>>
+  onChange: Dispatch<SetStateAction<string | number>>
   disabled?: boolean
 }
 const Input = ({ text, id, value, onChange, disabled }: InputProps) => {
