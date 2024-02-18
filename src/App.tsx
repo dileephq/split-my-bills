@@ -1,5 +1,11 @@
 import './App.css'
-import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
+import {
+  ChangeEvent,
+  Dispatch,
+  FormEvent,
+  SetStateAction,
+  useState,
+} from 'react'
 
 const avatarURL = 'https://i.pravatar.cc/48'
 
@@ -17,18 +23,18 @@ const initialFriends: Friend[] = [
     image: avatarURL,
     balance: -7,
   },
-  // {
-  //   id: 933372,
-  //   name: 'Sarah',
-  //   image: avatarURL,
-  //   balance: 20,
-  // },
-  // {
-  //   id: 499476,
-  //   name: 'Anthony',
-  //   image: avatarURL,
-  //   balance: 0,
-  // },
+  {
+    id: 933372,
+    name: 'Sarah',
+    image: avatarURL,
+    balance: 20,
+  },
+  {
+    id: 499476,
+    name: 'Anthony',
+    image: avatarURL,
+    balance: 0,
+  },
 ]
 
 function App() {
@@ -36,6 +42,16 @@ function App() {
   const [addFriendToggle, setAddFriendToggle] = useState(true)
   const [friendName, setFriendName] = useState('')
   const [friendAvatar, setFriendAvatar] = useState(avatarURL)
+
+  const [splitBill, setSplitBill] = useState<null | number>(null)
+
+  const [totalBill, setTotalBill] = useState(0)
+  const [myShare, setMyShare] = useState(0)
+  const [whoPaid, setWhoPaid] = useState(0)
+
+  const selectedFriend = friends.find((f) => f.id === splitBill) as Friend
+
+  const friendShare = totalBill - myShare
 
   const onAddFriend = (e: MouseEvent) => {
     e.preventDefault()
@@ -52,6 +68,35 @@ function App() {
     setFriendName('')
     setAddFriendToggle((t) => !t)
   }
+
+  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (myShare > totalBill) return
+    console.log(totalBill, myShare, friendShare, whoPaid)
+
+    // if I paid > Friend owes me friendsShare
+    // if Friend paid > I owe friend myShare
+
+    let friendLatest: Friend
+    if (whoPaid === 0) {
+      friendLatest = {
+        ...selectedFriend,
+        balance: selectedFriend.balance + friendShare,
+      }
+    } else {
+      friendLatest = {
+        ...selectedFriend,
+        balance: selectedFriend.balance - friendShare,
+      }
+    }
+    console.log('friendLatest', friendLatest)
+
+    setFriends((f) =>
+      f.map((e) =>
+        e.id === selectedFriend.id ? { ...e, ...friendLatest } : e,
+      ),
+    )
+  }
   return (
     <div className="app">
       <div className="sidebar">
@@ -59,8 +104,11 @@ function App() {
           {friends.map((friend) => (
             <FriendCard
               key={friend.id}
+              id={friend.id}
               name={friend.name}
               image={friend.image}
+              splitBill={splitBill}
+              setSplitBill={setSplitBill}
               balance={friend.balance}
             />
           ))}
@@ -103,36 +151,73 @@ function App() {
           </>
         )}
       </div>
-      <form className="form-split-bill">
-        <h2>Split a bill with [Friend]</h2>
-        <Input id="total_bill" text="Bill value" />
+      {splitBill && (
+        <form onSubmit={handleFormSubmit} className="form-split-bill">
+          <h2>Split a bill with {selectedFriend.name}</h2>
+          <Input
+            value={totalBill}
+            onChange={setTotalBill}
+            id="total_bill"
+            text="Bill value"
+          />
 
-        <Input id="my-expense" text="My expense" />
+          <Input
+            value={myShare}
+            onChange={setMyShare}
+            id="my-expense"
+            text="My expense"
+          />
 
-        <Input id="friend-share" text="[friends] expense" />
+          <Input
+            disabled={true}
+            value={friendShare}
+            onChange={() => {}}
+            id="friend-share"
+            text={`${selectedFriend.name} expense`}
+          />
 
-        <label htmlFor="paid_by_whom">- Who is paying the bill</label>
+          <label htmlFor="paid_by_whom">* Who is paying the bill</label>
 
-        <select name="paid_by_whom" id="paid_by_whom">
-          <option value="you">You</option>
-          <option value="[friend]">[Friend]</option>
-        </select>
+          <select
+            value={whoPaid}
+            onChange={(e) => setWhoPaid(Number(e.target.value))}
+            name="paid_by_whom"
+            id="paid_by_whom"
+          >
+            <option value={0}>You</option>
+            <option value={selectedFriend.id}>{selectedFriend.name}</option>
+          </select>
 
-        <Button text="Split bill" />
-      </form>
+          <button className="button">Split bill</button>
+        </form>
+      )}
     </div>
   )
 }
 
 type FriendCardProps = {
+  id: number
   image: string
   name: string
   balance: number
+  splitBill: number | null
+  setSplitBill: Dispatch<SetStateAction<number | null>>
 }
 
-const FriendCard = ({ image, name, balance }: FriendCardProps) => {
+const FriendCard = ({
+  id,
+  image,
+  name,
+  balance,
+  splitBill,
+  setSplitBill,
+}: FriendCardProps) => {
+  const isCardSelected = splitBill === id
+  const onSelectingFriend = (id: number) => {
+    isCardSelected ? setSplitBill(null) : setSplitBill(id)
+  }
   return (
-    <li>
+    <li className={isCardSelected ? 'selected' : ''}>
       <img src={image} alt="random" />
       <h3>{name}</h3>
       {balance < 0 && (
@@ -142,38 +227,21 @@ const FriendCard = ({ image, name, balance }: FriendCardProps) => {
       {balance > 0 && (
         <p className="green">{`${name} owes You  £${balance}`}</p>
       )}
-      <button className="button">Select</button>
+      <button onClick={() => onSelectingFriend(id)} className="button">
+        {isCardSelected ? 'Close' : 'Select'}
+      </button>
     </li>
-  )
-}
-
-type ButtonProps = {
-  text: string
-  addFriendToggle: boolean
-  setAddFriendToggle: Dispatch<SetStateAction<boolean>>
-}
-const Button = ({ text, addFriendToggle, setAddFriendToggle }: ButtonProps) => {
-  return (
-    <>
-      {addFriendToggle ? (
-        <button
-          onClick={() => setAddFriendToggle((t) => !t)}
-          className="button"
-        >
-          {text}
-        </button>
-      ) : null}
-    </>
   )
 }
 
 type InputProps = {
   text: string
   id: string
-  value: string
+  value: string | number
   onChange: Dispatch<SetStateAction<string>>
+  disabled?: boolean
 }
-const Input = ({ text, id, value, onChange }: InputProps) => {
+const Input = ({ text, id, value, onChange, disabled }: InputProps) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value)
   }
@@ -181,6 +249,7 @@ const Input = ({ text, id, value, onChange }: InputProps) => {
     <>
       <label htmlFor={id}>{`* ${text}`}</label>
       <input
+        disabled={disabled}
         value={value}
         onChange={handleInputChange}
         type="text"
